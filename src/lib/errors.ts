@@ -1,4 +1,4 @@
-import { Path } from "@graphql-tools/utils";
+import { Path, printPath } from "./path";
 import { GraphQLError, GraphQLErrorExtensions, GraphQLErrorOptions } from "graphql";
 
 export class ApolloError extends GraphQLError {
@@ -32,7 +32,7 @@ export class ValidationDirectiveError extends GraphQLError {
       extensions: {
         ...extensions,
         code: 'ERR_GRAPHQL_CONSTRAINT_VALIDATION',
-        fields,
+        fields: fields.map(p => printPath(p)),
       }
     });
 

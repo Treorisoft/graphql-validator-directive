@@ -1,6 +1,6 @@
 import { DocumentNode, GraphQLError, GraphQLSchema, TypeInfo, ValidationContext } from "graphql";
 import { ValidationDirectiveRule } from "./validationDirectiveRule";
-import { Path } from "@graphql-tools/utils";
+import { Path } from "./path";
 
 export type ValidationRuleCallback = (rule: ValidationDirectiveRule, path: Path) => void;
 

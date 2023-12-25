@@ -1,10 +1,10 @@
 import type { ApolloServerPlugin } from '@apollo/server';
-import { GraphQLSchema, separateOperations } from 'graphql';
+import { separateOperations } from 'graphql';
 import { validate } from './validate';
 import { ValidationOptions } from '../types';
 import { UserInputError, ValidationDirectiveError } from './errors';
-import { pathToArray } from '@graphql-tools/utils';
 import { filterInfoErrorFields } from './filterInfoErrorFields';
+import { printPath } from './path';
 
 export function createApolloValidationPlugin(options?: ValidationOptions): ApolloServerPlugin {
   return {
@@ -46,7 +46,7 @@ export function createApolloValidationPlugin(options?: ValidationOptions): Apoll
 
               
               let errorMessages = errors.map(err => {
-                let fieldsAffected = err.fieldPaths.map(path => pathToArray(path).join('.'));
+                let fieldsAffected = err.fieldPaths.map(path => printPath(path));
                 return `${err.message} (${fieldsAffected.join(', ')})`;
               });
               throw new UserInputError(errorMessages.join("\n"));
@@ -66,7 +66,7 @@ export function createApolloValidationPlugin(options?: ValidationOptions): Apoll
             const { body } = requestContext.response;
             let formattedWarnings = warnings.map(err => ({
               message: err.message,
-              fields: err.fieldPaths.map(p => pathToArray(p))
+              fields: err.fieldPaths.map(p => printPath(p))
             }))
             if (body.kind === 'single') {
               if (!body.singleResult.extensions) {

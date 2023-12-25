@@ -5,7 +5,7 @@ import { queryValidationVisitor } from "./queryValidationVisitor";
 import { ValidationDirectiveError } from "./errors";
 import { ValidationDirectiveRule } from "./validationDirectiveRule";
 import type { BaseContext } from "@apollo/server";
-import { Path } from "@graphql-tools/utils";
+import { Path, pathHasInput } from "./path";
 
 export async function validate(schema: GraphQLSchema, query: DocumentNode, resolverContext: BaseContext, variables?: VariableValues, operationName?: string, pluginOptions?: ValidationOptions) {
   const typeInfo = new TypeInfo(schema);
@@ -41,17 +41,17 @@ export async function validate(schema: GraphQLSchema, query: DocumentNode, resol
       }
 
       const ruleFields = validationRules.get(rule)!;
-
+      const hasInputField = ruleFields.some(p => pathHasInput(p));
       try {
         let result = await rule.execute(resolverContext);
         if (result == null || result === true) {
           ruleResults.set(rule.hash, true);
         }
         else if (typeof result === 'string') {
-          ruleResults.set(rule.hash, new ValidationDirectiveError(result, ruleFields, false));
+          ruleResults.set(rule.hash, new ValidationDirectiveError(result, ruleFields, hasInputField));
         }
         else if (result === false) {
-          ruleResults.set(rule.hash, new ValidationDirectiveError(`Directive validation ${rule.name} failed`, ruleFields, false));
+          ruleResults.set(rule.hash, new ValidationDirectiveError(`Directive validation ${rule.name} failed`, ruleFields, hasInputField));
         }
         else {
           console.error('INVALID directive rule execution result');

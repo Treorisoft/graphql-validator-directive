@@ -2,7 +2,7 @@ import { FieldNode, GraphQLArgument, GraphQLInputType, GraphQLList, isInputObjec
 import { validateInputTypeValue } from "./validateInputTypeValue";
 import { VisitorOptions } from "./types";
 import { DirectiveValidationContext } from "./validationContext";
-import { Path, addPath } from "@graphql-tools/utils";
+import { Path, addPath } from "./path";
 
 export function validateArrayTypeValue(context: DirectiveValidationContext, valueTypeDef: GraphQLList<GraphQLInputType>, typeDefWithDirective: GraphQLArgument, value: unknown, currentField: FieldNode | undefined, argName: string, variableName: string | undefined, parentPath: Path | undefined, options: VisitorOptions) {
   if (!typeDefWithDirective.astNode) {
@@ -24,7 +24,7 @@ export function validateArrayTypeValue(context: DirectiveValidationContext, valu
         break; // exit the while loop
       }
       
-      const currentPath = addPath(parentPath, index, undefined);
+      const currentPath = addPath(parentPath, index, undefined, undefined);
       const element = iteratorElement.value;
 
       if (isInputObjectType(valueTypeDefArray)) {

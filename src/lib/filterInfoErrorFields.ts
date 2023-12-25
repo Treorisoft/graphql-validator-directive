@@ -1,6 +1,7 @@
 import { GraphQLResolveInfo } from "graphql";
 import { ValidationDirectiveError } from "./errors";
-import { Path, addPath, pathToArray } from "@graphql-tools/utils";
+import { pathToArray } from "@graphql-tools/utils";
+import { Path, addPath } from './path';
 
 export function filterInfoErrorFields(info: GraphQLResolveInfo, errors: ValidationDirectiveError[]) {
   if (!errors?.length) {
@@ -10,7 +11,7 @@ export function filterInfoErrorFields(info: GraphQLResolveInfo, errors: Validati
   let possibleMatchingPaths: Path[] = [];
   errors.forEach(err => {
     return err.fieldPaths.some(p => {
-      if (pathsStartTheSame(p, info.path) && !pathIsEqual(p, info.path)) {
+      if (pathsStartTheSame(p, info.path as Path) && !pathIsEqual(p, info.path as Path)) {
         possibleMatchingPaths.push(p);
       }
     });
@@ -26,7 +27,7 @@ export function filterInfoErrorFields(info: GraphQLResolveInfo, errors: Validati
 
   for (let i = 0, l = selectionSet.length; i < l; i++){
     let sel = selectionSet[i];
-    let selPath = addPath(info.path, (sel as any).name.value, undefined);
+    let selPath = addPath(info.path, (sel as any).name.value, undefined, undefined);
     let hasErrorPath = possibleMatchingPaths.some(p => pathIsEqual(p, selPath));
     if (hasErrorPath) {
       indexesToRemove.push(i);

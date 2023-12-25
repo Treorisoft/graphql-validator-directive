@@ -4,7 +4,7 @@ import { validateInputTypeValue } from "./validateInputTypeValue";
 import { validateArrayTypeValue } from "./validateArrayTypeValue";
 import { DirectiveValidationContext } from "./validationContext";
 import { getExtensionRules } from "./getExtensionRules";
-import { Path, addPath, pathToArray } from "@graphql-tools/utils";
+import { Path, addPath } from "./path";
 
 export function inputValidationVisitor(context: DirectiveValidationContext, inputObjectTypeDef: GraphQLInputObjectType, argName: string, variableName: string | undefined, value: unknown, currentField: undefined | FieldNode, parentPath: Path | undefined, options: VisitorOptions): ASTVisitor {
 
@@ -13,7 +13,7 @@ export function inputValidationVisitor(context: DirectiveValidationContext, inpu
       enter: (node) => {
         const iFieldName = node.name.value;
         const iFieldTypeDef = inputObjectTypeDef.getFields()[iFieldName];
-        const currentPath = addPath(parentPath, iFieldName, (iFieldTypeDef.type as any).name);
+        const currentPath = addPath(parentPath, iFieldName, (iFieldTypeDef.type as any).name, true);
         // @ts-ignore
         const lvalue = value[iFieldName];
 

@@ -5,7 +5,7 @@ import { validateInputTypeValue } from "./validateInputTypeValue";
 import { validateArrayTypeValue } from "./validateArrayTypeValue";
 import { DirectiveValidationContext } from "./validationContext";
 import { getExtensionRules } from "./getExtensionRules";
-import { addPath, Path } from "@graphql-tools/utils";
+import { addPath, Path } from "./path";
 
 type PossibleTypes = GraphQLNamedType | Maybe<GraphQLObjectType>;
 
@@ -69,7 +69,7 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
           currentFieldDef = currentTypeInfo?.typeDef.getFields()[node.name.value]
         }
 
-        currentPath = addPath(currentPath, node.name.value, currentTypeInfo?.typeDef?.name);
+        currentPath = addPath(currentPath, node.name.value, currentTypeInfo?.typeDef?.name, undefined);
 
         if (currentFieldDef) {
           const newTypeDef = getNamedType(currentFieldDef.type);
@@ -87,7 +87,7 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
       },
       leave: () => {
         currentTypeInfo = currentTypeInfo?.parent;
-        currentPath = currentPath?.prev;
+        currentPath = currentPath?.prev as Path | undefined;
       }
     },
     Argument: {
@@ -99,7 +99,7 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
           return;
         }
 
-        currentPath = addPath(currentPath, arg.name.value, (argTypeDef.type as any).name);
+        currentPath = addPath(currentPath, arg.name.value, (argTypeDef.type as any).name, true);
 
         let validationRules = getExtensionRules(argTypeDef.extensions);
         if (validationRules?.length) {
@@ -134,7 +134,7 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
         }
       },
       leave: () => {
-        currentPath = currentPath?.prev;
+        currentPath = currentPath?.prev as Path | undefined;
       }
     },
     InlineFragment: {
