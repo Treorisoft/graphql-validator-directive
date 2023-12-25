@@ -1,0 +1,1 @@
+export const EXTENSION_RULE_PATH = ['gvd-validation-rules'];

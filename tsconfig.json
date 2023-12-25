@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "lib": ["es6", "DOM", "esnext"],
+    "noImplicitAny": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "pretty": true,
+    "removeComments": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

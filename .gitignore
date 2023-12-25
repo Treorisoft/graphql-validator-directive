@@ -79,6 +79,15 @@ web_modules/
 .env.production.local
 .env.local
 
+# OS X temporary files
+.DS_Store
+
+# Rush temporary files
+common/deploy/
+common/temp/
+common/autoinstallers/*/.npmrc
+**/.rush/temp/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
