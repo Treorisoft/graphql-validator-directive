@@ -6,17 +6,12 @@ import { UserInputError, ValidationDirectiveError } from './errors';
 import { pathToArray } from '@graphql-tools/utils';
 import { filterInfoErrorFields } from './filterInfoErrorFields';
 
-type ApolloOptions = {
-  schema: GraphQLSchema
-  options?: ValidationOptions
-}
-
-export function createApolloValidationPlugin({ schema, options }: ApolloOptions): ApolloServerPlugin {
+export function createApolloValidationPlugin(options?: ValidationOptions): ApolloServerPlugin {
   return {
     async requestDidStart() {
       return {
         async didResolveOperation(requestContext) {
-          const { request, document, contextValue } = requestContext;
+          const { request, document, contextValue, schema } = requestContext;
           const query = request.operationName
             ? separateOperations(document)[request.operationName]
             : document;

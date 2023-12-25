@@ -59,7 +59,7 @@ import { createApolloValidationPlugin } from '@treorisoft/graphql-validator-dire
 const server = new ApolloServer<ResolverContext>({
   schema,
   plugins: [
-    createApolloValidationPlugin({ schema }),
+    createApolloValidationPlugin(),
   ]
 });
 ```
