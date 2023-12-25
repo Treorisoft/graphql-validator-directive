@@ -72,7 +72,7 @@ There are 3 ways to signal an failure.
 
 Return a boolean `false`, return a `string` with the error message or simply throw an error.
 
-Depending on just what is doing the validation the effect of the failure will be different.
+Depending on just what kind of validation is taking place the effect of the failure will be different.
 
 - Input validation, or top-level query/mutation fields will cause an error to be thrown.
 - Type field validation:
