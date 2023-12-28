@@ -1,10 +1,10 @@
 {
   "name": "@treorisoft/graphql-validator-directive",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
-  "repository": "https://github.com/Treorisoft/bookshelf",
+  "repository": "https://github.com/Treorisoft/graphql-validator-directive",
   "scripts": {
     "copy-env": "",
     "start": "",
