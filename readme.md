@@ -78,3 +78,7 @@ Depending on just what kind of validation is taking place the effect of the fail
 - Type field validation:
   - If your rule throws, it will be thrown before anything is run
   - If you return a failure (`false` or `string`), your field will be _removed_ from the selection set and pretend that it wasn't even requested.
+
+## Development
+
+Development of this package is done via a larger monorepo where this is a git submodule.
