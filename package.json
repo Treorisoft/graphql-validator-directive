@@ -14,16 +14,16 @@
     "test": ""
   },
   "dependencies": {
-    "@graphql-tools/schema": "~10.0.0",
-    "@graphql-tools/utils": "~10.0.6",
+    "@graphql-tools/schema": "~10.0.2",
+    "@graphql-tools/utils": "~10.0.12",
     "object-hash": "~3.0.0"
   },
   "devDependencies": {
     "@types/node": "~20.7.2",
     "rimraf": "~5.0.5",
-    "typescript": "~5.2.2",
+    "typescript": "~5.3.3",
     "@types/object-hash": "~3.0.6",
-    "@apollo/server": "~4.9.3"
+    "@apollo/server": "~4.10.0"
   },
   "peerDependencies": {
     "graphql": "^15.7.2 || ^16.0.0"
