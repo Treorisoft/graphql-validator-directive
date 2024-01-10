@@ -19,7 +19,7 @@
     "object-hash": "~3.0.0"
   },
   "devDependencies": {
-    "@types/node": "~20.7.2",
+    "@types/node": "~20.10.8",
     "rimraf": "~5.0.5",
     "typescript": "~5.3.3",
     "@types/object-hash": "~3.0.6",
