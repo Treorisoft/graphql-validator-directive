@@ -12,6 +12,10 @@ export function createApolloValidationPlugin(options?: ValidationOptions): Apoll
       return {
         async didResolveOperation(requestContext) {
           const { request, document, contextValue, schema } = requestContext;
+          if ((request.query?.includes('__schema') || request.query?.includes('__type'))) {
+            // introspection query - ignore
+            return;
+          }
           const query = request.operationName
             ? separateOperations(document)[request.operationName]
             : document;
@@ -26,6 +30,10 @@ export function createApolloValidationPlugin(options?: ValidationOptions): Apoll
           );
 
           if (errors.length) {
+            // "document" type is marked readonly - but `requestContext` isn't frozen and
+            // this helps avoid getting filtered fields caught in the documentStore
+            // @ts-ignore
+            requestContext.document = structuredClone(requestContext.document);
             let throwableErrors: ValidationDirectiveError[] = [];
             let ignorableErrors: ValidationDirectiveError[] = [];
             errors.forEach(err => {

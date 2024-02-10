@@ -38,7 +38,6 @@ export function filterInfoErrorFields(info: GraphQLResolveInfo, errors: Validati
     indexesToRemove.sort((a, b) => b - a);
     for (let idx of indexesToRemove) {
       (fieldNodes[0].selectionSet!.selections as any[]).splice(idx, 1);
-      console.log('got here');
     }
   }
 }
