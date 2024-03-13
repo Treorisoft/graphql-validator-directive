@@ -6,13 +6,20 @@ import { UserInputError, ValidationDirectiveError } from './errors';
 import { filterInfoErrorFields } from './filterInfoErrorFields';
 import { printPath } from './path';
 
+const INTROSPECTION_REGEX = /\b(__type|__schema)\b/gm;
+function isIntrospection(query?: string) {
+  if (!query) return false;
+  INTROSPECTION_REGEX.lastIndex = 0;
+  return INTROSPECTION_REGEX.test(query);
+}
+
 export function createApolloValidationPlugin(options?: ValidationOptions): ApolloServerPlugin {
   return {
     async requestDidStart() {
       return {
         async didResolveOperation(requestContext) {
           const { request, document, contextValue, schema } = requestContext;
-          if ((request.query?.includes('__schema') || request.query?.includes('__type'))) {
+          if (isIntrospection(request.query)) {
             // introspection query - ignore
             return;
           }
