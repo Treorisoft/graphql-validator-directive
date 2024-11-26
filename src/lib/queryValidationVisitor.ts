@@ -69,7 +69,7 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
           currentFieldDef = currentTypeInfo?.typeDef.getFields()[node.name.value]
         }
 
-        currentPath = addPath(currentPath, node.name.value, currentTypeInfo?.typeDef?.name, undefined);
+        currentPath = addPath(currentPath, node.alias?.value || node.name.value, currentTypeInfo?.typeDef?.name, undefined);
 
         if (currentFieldDef) {
           const newTypeDef = getNamedType(currentFieldDef.type);
@@ -95,11 +95,12 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
         const argName = arg.name.value;
         const argTypeDef = currentFieldDef?.args.find(d => d.name === argName);
 
+        // always need to addPath so that "leave" works properly
+        currentPath = addPath(currentPath, arg.name.value, (argTypeDef?.type as any)?.name || 'unknown', true);
+
         if (!argTypeDef) {
           return;
         }
-
-        currentPath = addPath(currentPath, arg.name.value, (argTypeDef.type as any).name, true);
 
         let validationRules = getExtensionRules(argTypeDef.extensions);
         if (validationRules?.length) {
