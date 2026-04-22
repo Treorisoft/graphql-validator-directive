@@ -82,6 +82,14 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
             });
           }
         } else {
+          const rawFieldDef = context.getFieldDef();
+          if (rawFieldDef) {
+            // couldn't find field def on parent type, but it exists in schema, so likely an error with the parent type definition or its an introspection field.
+            const rawTypeDef = getNamedType(rawFieldDef.type);
+            currentTypeInfo = { parent: currentTypeInfo, typeDef: rawTypeDef };
+            // TODO: add warning capability for non-instropection fields that can't be found on the parent type
+            return;
+          }
           return BREAK;
         }
       },
