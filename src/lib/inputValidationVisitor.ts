@@ -13,7 +13,11 @@ export function inputValidationVisitor(context: DirectiveValidationContext, inpu
       enter: (node) => {
         const iFieldName = node.name.value;
         const iFieldTypeDef = inputObjectTypeDef.getFields()[iFieldName];
-        const currentPath = addPath(parentPath, iFieldName, (iFieldTypeDef.type as any).name, true);
+        const currentPath = addPath(parentPath, {
+          key: iFieldName,
+          typename: (iFieldTypeDef.type as any).name,
+          is_input: true,
+        });
         // @ts-ignore
         const lvalue = value[iFieldName];
 

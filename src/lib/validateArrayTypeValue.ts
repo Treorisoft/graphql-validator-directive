@@ -24,7 +24,7 @@ export function validateArrayTypeValue(context: DirectiveValidationContext, valu
         break; // exit the while loop
       }
       
-      const currentPath = addPath(parentPath, index, undefined, undefined);
+      const currentPath = addPath(parentPath, { key: index });
       const element = iteratorElement.value;
 
       if (isInputObjectType(valueTypeDefArray)) {

@@ -5,7 +5,9 @@ import { validateInputTypeValue } from "./validateInputTypeValue";
 import { validateArrayTypeValue } from "./validateArrayTypeValue";
 import { DirectiveValidationContext } from "./validationContext";
 import { getExtensionRules } from "./getExtensionRules";
-import { addPath, Path } from "./path";
+import { addPath, Path, pathHasSkip, replaceRoot } from "./path";
+import { shouldIncludeNode } from "@graphql-tools/utils";
+import { ValidationDirectiveRule } from "./validationDirectiveRule";
 
 type PossibleTypes = GraphQLNamedType | Maybe<GraphQLObjectType>;
 
@@ -20,15 +22,19 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
   let currentField: undefined | FieldNode;
   let currentFieldDef: GraphQLField<any, any, any> | undefined;
   let currentPath: Path | undefined;
+  let currentFragmentName: string | undefined;
+  let fragmentRuleMap: Map<string, Array<{ rule: ValidationDirectiveRule, path: Path }>> = new Map();
 
   return {
     FragmentDefinition: {
       enter: (node) => {
         const newTypeDef = typeFromAST(context.getSchema(), node.typeCondition);
         currentTypeInfo = { parent: currentTypeInfo, typeDef: newTypeDef };
+        currentFragmentName = node.name.value;
       },
       leave: () => {
         currentTypeInfo = currentTypeInfo?.parent;
+        currentFragmentName = undefined;
       }
     },
     OperationDefinition: {
@@ -69,17 +75,36 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
           currentFieldDef = currentTypeInfo?.typeDef.getFields()[node.name.value]
         }
 
-        currentPath = addPath(currentPath, node.alias?.value || node.name.value, currentTypeInfo?.typeDef?.name, undefined);
+        const shouldInclude = shouldIncludeNode(variableValues, node);
+        currentPath = addPath(currentPath, {
+          key: node.alias?.value || node.name.value,
+          typename: currentTypeInfo?.typeDef?.name,
+          skipped: shouldInclude === false,
+        });
 
         if (currentFieldDef) {
           const newTypeDef = getNamedType(currentFieldDef.type);
           currentTypeInfo = { parent: currentTypeInfo, typeDef: newTypeDef };
           
+          if (pathHasSkip(currentPath)) {
+            return;
+          }
+
           let validationRules = getExtensionRules(currentFieldDef.extensions);
           if (validationRules?.length) {
-            validationRules.forEach(rule => {
-              context.onValidationRule(rule, currentPath!);
-            });
+            if (currentFragmentName) {
+              if (!fragmentRuleMap.has(currentFragmentName)) {
+                fragmentRuleMap.set(currentFragmentName, []);
+              }
+              validationRules.forEach(rule => {
+                fragmentRuleMap.get(currentFragmentName!)!.push({ rule, path: currentPath! });
+              });
+            }
+            else {
+              validationRules.forEach(rule => {
+                context.onValidationRule(rule, currentPath!);
+              });
+            }
           }
         } else {
           const rawFieldDef = context.getFieldDef();
@@ -104,7 +129,11 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
         const argTypeDef = currentFieldDef?.args.find(d => d.name === argName);
 
         // always need to addPath so that "leave" works properly
-        currentPath = addPath(currentPath, arg.name.value, (argTypeDef?.type as any)?.name || 'unknown', true);
+        currentPath = addPath(currentPath, {
+          key: arg.name.value,
+          typename: (argTypeDef?.type as any)?.name || 'unknown',
+          is_input: true,
+        });
 
         if (!argTypeDef) {
           return;
@@ -150,9 +179,38 @@ export function queryValidationVisitor(context: DirectiveValidationContext, opti
       enter: (node) => {
         const newTypeDef = typeFromAST(context.getSchema(), node.typeCondition!);
         currentTypeInfo = { parent: currentTypeInfo, typeDef: newTypeDef };
+
+        const shouldInclude = shouldIncludeNode(variableValues, node);
+        currentPath = addPath(currentPath, {
+          key: `.`, // mostly for print debugging purposes - fragments don't have a key like fields/args do, so just leave it blank, and this shouldn't ever be directly walked when filtering
+          typename: currentTypeInfo?.typeDef?.name,
+          skipped: shouldInclude === false,
+        });
       },
       leave: () => {
         currentTypeInfo = currentTypeInfo?.parent;
+        currentPath = currentPath?.prev as Path | undefined;
+      }
+    },
+    FragmentSpread: {
+      enter: (node) => {
+        const shouldInclude = shouldIncludeNode(variableValues, node);
+        if (shouldInclude) {
+          const fragmentName = node.name.value;
+          const fragmentRules = fragmentRuleMap.get(fragmentName);
+          if (fragmentRules?.length) {
+            fragmentRules.forEach(({ rule, path }) => {
+              let adjustedPath = replaceRoot(path, addPath(currentPath!, {
+                key: fragmentName,
+                typename: currentTypeInfo?.typeDef?.name,
+              }));
+              context.onValidationRule(rule, adjustedPath);
+            });
+          }
+        }
+      },
+      leave: () => {
+
       }
     }
   }
