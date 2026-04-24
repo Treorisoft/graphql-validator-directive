@@ -1,20 +1,4 @@
-import {
-  FieldNode,
-  GraphQLCompositeType,
-  GraphQLField,
-  GraphQLNamedType,
-  GraphQLOutputType,
-  GraphQLResolveInfo,
-  GraphQLString,
-  Kind,
-  SelectionNode,
-  getNamedType,
-  isCompositeType,
-  isInterfaceType,
-  isObjectType,
-  isUnionType,
-} from 'graphql';
-import { pathToArray } from '@graphql-tools/utils';
+import { FieldNode, GraphQLCompositeType, GraphQLField, GraphQLNamedType, GraphQLOutputType, GraphQLResolveInfo, GraphQLString, Kind, SelectionNode, getNamedType, isCompositeType, isInterfaceType, isObjectType, isUnionType } from 'graphql';
 import { addPath, Path } from './path';
 
 type WalkedField = {
@@ -26,10 +10,9 @@ type WalkedField = {
   namedType: GraphQLNamedType;
 };
 
-export function walkInfoSelections(
-  info: GraphQLResolveInfo,
-  onField: (field: WalkedField) => void | boolean,
-) {
+export type OnFieldCallback = (field: WalkedField) => void | boolean;
+
+export function walkInfoSelections(info: GraphQLResolveInfo, onField: OnFieldCallback) {
   const rootType = getNamedType(info.returnType);
   if (!isCompositeType(rootType)) {
     return;
@@ -40,23 +23,11 @@ export function walkInfoSelections(
       continue;
     }
 
-    walkSelectionSet(
-      info,
-      fieldNode.selectionSet.selections,
-      rootType,
-      info.path as Path,
-      onField,
-    );
+    walkSelectionSet(info, fieldNode.selectionSet.selections, rootType, info.path as Path, onField);
   }
 }
 
-function walkSelectionSet(
-  info: GraphQLResolveInfo,
-  selections: readonly SelectionNode[],
-  parentType: GraphQLCompositeType,
-  parentPath: Path,
-  onField: (field: WalkedField) => void | boolean,
-) {
+function walkSelectionSet(info: GraphQLResolveInfo, selections: readonly SelectionNode[], parentType: GraphQLCompositeType, parentPath: Path, onField: OnFieldCallback) {
   let indexesToRemove: number[] = [];
   for (let i = 0, l = selections.length; i < l; i++) {
     const selection = selections[i];
@@ -98,13 +69,7 @@ function walkSelectionSet(
       }
 
       if (selection.selectionSet && isCompositeType(namedType)) {
-        walkSelectionSet(
-          info,
-          selection.selectionSet.selections,
-          namedType,
-          fieldPath,
-          onField,
-        );
+        walkSelectionSet(info, selection.selectionSet.selections, namedType, fieldPath, onField);
       }
 
       continue;
@@ -116,13 +81,7 @@ function walkSelectionSet(
         : parentType;
 
       if (fragmentType && isCompositeType(fragmentType)) {
-        walkSelectionSet(
-          info,
-          selection.selectionSet.selections,
-          fragmentType,
-          parentPath,
-          onField,
-        );
+        walkSelectionSet(info, selection.selectionSet.selections, fragmentType, parentPath, onField);
       }
 
       continue;
@@ -136,13 +95,7 @@ function walkSelectionSet(
 
       const fragmentType = info.schema.getType(fragment.typeCondition.name.value);
       if (fragmentType && isCompositeType(fragmentType)) {
-        walkSelectionSet(
-          info,
-          fragment.selectionSet.selections,
-          fragmentType,
-          parentPath,
-          onField,
-        );
+        walkSelectionSet(info, fragment.selectionSet.selections, fragmentType, parentPath, onField);
       }
     }
   }
@@ -150,16 +103,13 @@ function walkSelectionSet(
   if (indexesToRemove.length) {
     indexesToRemove.sort((a, b) => b - a);
     for (let idx of indexesToRemove) {
-      // as any[] because SelectionNode doesn't have to be mutable, but in practice it is
+      // as any[] because SelectionNode is typed as readonly, but is actually mutable in practice - thankfully since we need it to be
       (selections as any[]).splice(idx, 1);
     }
   }
 }
 
-function getFieldDef(
-  parentType: GraphQLCompositeType,
-  fieldName: string,
-): GraphQLField<any, any> | undefined {
+function getFieldDef(parentType: GraphQLCompositeType, fieldName: string): GraphQLField<any, any> | undefined {
   if (isObjectType(parentType) || isInterfaceType(parentType)) {
     return parentType.getFields()[fieldName];
   }
